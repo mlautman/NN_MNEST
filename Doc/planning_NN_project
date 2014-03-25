@@ -1,0 +1,15 @@
+		Bring in the pictures
+
+		generate Sigma matrix and save that
+			generate random gausian distribution matrix (Sigma, W(0))
+			parameters:
+				dimensions of desired gausian random matrix
+			output numpy matrix
+
+	for each picture calculate the y_t vectors
+
+		write the Z_t update functions
+write the W update functions
+write code to recover x_t's from z_t's
+
+write code to quantify the correctness of the code
