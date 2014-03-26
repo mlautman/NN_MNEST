@@ -7,6 +7,7 @@ import pandas as pd
 from collections import Counter
 from src.random_matrix import generate_random_matrix
 from src.image_t_wrapper import Image_t
+import time
 
 
 def dict_2_dataframe(dictionary):
@@ -66,6 +67,8 @@ def prep_data(file, prep_data_fn=None, header=[0]):
     with open(file, 'rb') as f:
         reader = csv.reader(f)
         for i, row in enumerate(reader):
+            if i > 100:
+                return images
             if i not in header:
                 if images[int(row[0])] is None:
                     images[int(row[0])] = [prep_data_fn(row[1:])]
@@ -111,17 +114,20 @@ def generate_images_t(X_all, W, sigma, z_len, max_from_each=(sys.maxint-1)):
     return all_images
 
 
-def main(fname):
-
+def main(fname='./mnest_train.csv'):
+    t0 = time.clock()
     x_len = columns(fname)-1
     y_len = int(x_len/2)
     z_len = int(2*x_len)
     sigma = np.matrix(generate_random_matrix(x_len, y_len))
     W = np.matrix(generate_random_matrix(z_len, y_len))
+    print time.clock() - t0
     X = prep_data(fname, prep_data_fn=slist_2_npmatrix)
-    images_t = generate_images_t(X, W, sigma, z_len)
+    print time.clock() - t0
+    images_t = generate_images_t(X, W, sigma, z_len, max_from_each=100)
+    print time.clock() - t0
 
-    return images_t
+    return images_t , W , sigma
 
 
 if __name__ == '__main__':

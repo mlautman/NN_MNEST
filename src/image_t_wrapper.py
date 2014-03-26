@@ -9,7 +9,7 @@ def _initial_z_t(z_length):
 
 
 def _initial_mew():
-    return 1.
+    return 1
 
 
 def _update_mew(mew_o):
@@ -32,6 +32,7 @@ class Image_t:
 
     def __init__(self, label, x, y, z, lambda1=.1):
         self.label = label
+        self.lambda1 = lambda1
         self.x = x
         self.y = y
         self.z = [z, _initial_z_t(z.size)]
@@ -45,16 +46,20 @@ class Image_t:
         return _gamma(self.mew_n, self.mew_o)
 
     def _S_lambda(self, u):
-        for i, v in enumerate(u):
-            if v > 0 and v > self.lambda1:
-                u[i] = v - self.lambda1 * v
-            elif v < 0 and v < -self.lambda1:
-                u[i] = v + self.lambda1 * v
+        for i, v in enumerate(u.tolist()[0]):
+            if (v > 0) and (v > self.lambda1):
+                u[0, i] = v - self.lambda1 * v
+            elif (v < 0) and (v < -self.lambda1):
+                u[0, i] = v + self.lambda1 * v
+            else:
+                u[0, i] = 0
         return u
 
-    def _hangman(self, u, W_T):
+    def _hangman(self, u, W):
+        # print u.shape
+        # print W_T.shape
         return self._S_lambda(
-            u + (self.y - u * W_T) * W_T.transpose()
+            u + (W * (self.y.transpose() - W.transpose() * u.transpose())).transpose()
             )
 
     def update_z_t(self, W_T):
@@ -74,7 +79,7 @@ class Image_t:
         return self.z[self.z_new] - self.z[toggle(self.z_new)]
 
     def estimate_x(self, W, sigma):
-        return self.get_z() * W * np.pinv(sigma)
+        return self.get_z() * W * np.linalg.pinv(sigma)
 
     def show_x_estimate(self, W, sigma):
         show_image_np(self.estimate_x(W, sigma))

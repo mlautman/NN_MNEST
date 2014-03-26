@@ -8,7 +8,7 @@ def _initial_z_t(z_length):
 
 
 def _initial_mew():
-    return 1
+    return 1.
 
 
 def _update_mew(mew_o):
