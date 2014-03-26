@@ -5,9 +5,8 @@ import csv
 import numpy as np
 import pandas as pd
 from collections import Counter
-from matplotlib import pyplot as plt
 from src.random_matrix import generate_random_matrix
-from src.update_z_vector import Image_t
+from src.image_t_wrapper import Image_t
 
 
 def dict_2_dataframe(dictionary):
@@ -20,36 +19,6 @@ def dict_2_dataframe(dictionary):
     df = pd.DataFrame(li)
     df.columns = ['label', 'image']
     return df
-
-
-def show_image_v(image, rlen=28):
-    """
-    shows you your image
-        parameters:
-            image = image stretched into a vector
-        notes:
-            BLOCKS UNTIL YOU CLOSE OUT IMAGE
-    """
-    b = [image[(i-1)*rlen:(i)*rlen] for i in range(1, int(len(image)/rlen))]
-    plt.imshow(b)
-    plt.show()
-
-
-def show_image_m(image):
-    """
-    shows you your image
-        parameters:
-            image = image as a matrix
-        notes:
-            BLOCKS UNTIL YOU CLOSE OUT IMAGE
-    """
-    plt.imshow(image)
-    plt.show()
-
-
-def show_image_np(np_image, rlen=28):
-    plt.imshow(np.resize(np_image, (int(np_image.size/rlen), rlen)))
-    plt.show()
 
 
 def label_counter(fname):
@@ -142,7 +111,6 @@ def generate_images_t(X_all, W, sigma, z_len, max_from_each=(sys.maxint-1)):
     return all_images
 
 
-
 def main(fname):
 
     x_len = columns(fname)-1
@@ -151,7 +119,7 @@ def main(fname):
     sigma = np.matrix(generate_random_matrix(x_len, y_len))
     W = np.matrix(generate_random_matrix(z_len, y_len))
     X = prep_data(fname, prep_data_fn=slist_2_npmatrix)
-    images_t = generate_images_t(X, W, sigma, z_len, max_from_each=10)
+    images_t = generate_images_t(X, W, sigma, z_len)
 
     return images_t
 
