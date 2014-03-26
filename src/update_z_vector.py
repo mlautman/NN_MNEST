@@ -27,12 +27,12 @@ def solve_for_z_t(W_T, y_t):
     return y_t*np.linalg.pinv(W_T)
 
 
-class z_t_update_wrapper:
+class Image_t:
 
-    def __init__(self, W_T_0, y_t, z_length, lambda1):
+    def __init__(self, label, x_t, sigma, W_T_0, z_length, lambda1):
         self.z_t_n = None
         self.lambda1 = None
-        self.y_t = y_t
+        self.y_t = np.matrix(x_t * sigma)
         self.mew_o = None
         self.mew_n = _initial_mew()
         self.z_t_o = _initial_z_t(z_length)
