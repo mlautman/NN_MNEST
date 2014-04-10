@@ -43,17 +43,15 @@ class Image_t:
 
         self.Z = Z
         self.Z_o = Z
-        self.mew_o = 0
-        self.mew_n = 1
+        self.mew_o = [None]*X.shape[0]
+        self.mew_n = [_initial_mew()]*X.shape[0]
 
     def update_lambda(self, lambda1):
         self.lambda1 = lambda1
 
-    def update_mew(self):
+    def _compute_gamma(self, index):
         self.mew_o = self.mew_n
         self.mew_n = _update_mew(self.mew_n)
-
-    def _compute_gamma(self, index):
         return _gamma(self.mew_n, self.mew_o)
 
     def _S_lambda(self, u):
@@ -74,18 +72,21 @@ class Image_t:
 
     def update_z_t(self, W, S):
         M = W * S
-        self.Z_o = self.Z
+        Z_n = self.Z
+
+        z_o_i = toggle(self.z_new)
         gamma = self._compute_gamma()
-        self.Z = self._hangman(
-            self.Z + gamma * (self.Z - self.Z_o),
+        self.z[z_o_i] = self._hangman(
+            self.z[z_n_i] + gamma * (self.z[z_n_i] - self.z[z_o_i]),
             M
             )
+        self.z_new = toggle(self.z_new)
 
     def get_z(self):
-        return self.Z
+        return self.z[self.z_new]
 
     def get_z_delta(self):
-        return self.Z - self.Z_o
+        return self.z[self.z_new] - self.z[toggle(self.z_new)]
 
     def estimate_x(self, W):
         return self.get_z() * W
@@ -94,4 +95,4 @@ class Image_t:
         show_image_np(self.estimate_x(W))
 
     def get_z_t_delta(self):
-        return self.Z - self.Z_o
+        return self.z[self.z_new] - self.z[self.z_new]

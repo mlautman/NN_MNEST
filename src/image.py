@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 from src.random_matrix import generate_random_matrix
-from src.Image_t import Image_t
+from src.image_t_wrapper import Image_t
 import time
 
 
@@ -82,18 +82,16 @@ def slist_2_ilist(slist):
 
 
 def slist_2_npmatrix(slist):
-    return np.matrix([int(a) for a in slist]).transpose()
+    return np.matrix([int(a) for a in slist])
 
 
-def generate_images_t(X, W, S, z_len, max_from_each=(sys.maxint-1)):
+def generate_images_t(X_all, W, S, z_len, max_from_each=(sys.maxint-1)):
     # W_inv = np.linalg.pinv(W)
-    all_images = [None]*len(X)
-    for label, x_label in enumerate(X):
-        x_for_label = [None] * len(x_label)
-        for i, x in enumerate(x_label):
-            x_for_label[i] = Image_t(label, x, W, S)
-        all_images[label] = x_for_label
-    return all_images
+    X = np.matrix(X_all)
+    # all_images = [None]*len(X_all)
+    Y = X * S
+    Z = np.matrix(([0]*z_len)*len(X)).reshape(len(X), z_len)
+    return X, Y, Z
 
 
 def main(fname='./mnest_train.csv'):
@@ -104,12 +102,12 @@ def main(fname='./mnest_train.csv'):
     W = np.matrix(generate_random_matrix(z_len, x_len))
     S = np.matrix(generate_random_matrix(x_len, y_len))
     print time.clock() - t0
-    X = prep_data(fname, prep_data_fn=slist_2_npmatrix)
+    X = prep_data(fname, prep_data_fn=slist_2_ilist)
     print time.clock() - t0
-    images_t = generate_images_t(X, W, S, z_len, max_from_each=100)
+    X, Y, Z = generate_images_t(X, W, S, z_len, max_from_each=100)
     print time.clock() - t0
 
-    return images_t, W, S
+    return images_t, W, S, X, Y, Z
 
 
 if __name__ == '__main__':
