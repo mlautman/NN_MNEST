@@ -20,13 +20,7 @@ class W_T:
     def W(self):
         return self.W
 
-    def _optimize_fn(self, Z, Y):
-        return (
-            square_e(Y - Z * self.S * self.W).sum() +
-            self.alpha*square_e(self.W).sum()
-            )
-
-    def ridge_update_W(self, Z, Y):
+    def ridge_update_W(self, images):
         """
         X.shape = (n , d)
         Y.shape = (n , r)
@@ -34,5 +28,7 @@ class W_T:
         S.shape = (d , r)
         W.shape = (k , d)
         """
-        self.W = opt.fmin(self._optimize_fn, self.W, args=(Z, Y), maxiter=2,)
-        print self.W.shape
+        for i in images:
+            self.W = (
+                self.W - self.alpha * (self.W * i.z - i.x)*i.z.transpose()
+                )

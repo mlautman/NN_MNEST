@@ -35,7 +35,7 @@ def _S_lambda(u, sparsity):
 
 def _hangman(u, y, M, sparsity):
     return _S_lambda(
-        u + (y - u * M) * M.transpose(),
+        u + (y - u * M) * np.linalg.pinv(M),#.transpose(),
         sparsity
         )
 
