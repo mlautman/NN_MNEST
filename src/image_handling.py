@@ -82,7 +82,7 @@ def slist_2_ilist(slist):
 
 
 def slist_2_npmatrix(slist):
-    return np.matrix([int(a) for a in slist]).transpose()
+    return np.matrix([int(a)/255. for a in slist])
 
 
 def generate_images_t(X, W, S, z_len, max_from_each=(sys.maxint-1)):

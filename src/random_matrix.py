@@ -5,4 +5,4 @@ from sklearn.preprocessing import normalize
 
 
 def generate_random_matrix(rows, cols, norm='l2'):
-    return normalize(np.random.randn(rows, cols), axis=1, norm=norm)
+    return normalize(np.random.randn(rows, cols), axis=0, norm=norm)

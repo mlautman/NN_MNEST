@@ -30,3 +30,8 @@ def show_image_m(image):
 def show_image_np(np_image, rlen=28):
     plt.imshow(np.resize(np_image, (int(np_image.size/rlen), rlen)))
     plt.show()
+
+
+def plot_list(list):
+    plt.plot(list)
+    plt.show()

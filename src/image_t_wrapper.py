@@ -25,8 +25,8 @@ def _gamma(mew_n, mew_o):
     return (mew_o - 1)/mew_n
 
 
-def solve_for_z_t(W_T, y_t):
-    return y_t*np.linalg.pinv(W_T)
+# def solve_for_z_t(W_T, y_t):
+#     return y_t*np.linalg.pinv(W_T)
 
 
 def toggle(a):
