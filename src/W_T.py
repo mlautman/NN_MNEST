@@ -1,6 +1,6 @@
 import numpy as np
 from math import sqrt
-from random_matrix import generate_random_matrix
+from random_matrix import generate_random_norm_matrix
 from src.show_images import plot_list
 
 
@@ -11,8 +11,9 @@ class W_T(object):
             dimensions,
             norm='l1',
             axis=1,
-            learn_rate=.01,
-            track_learning=True
+            learn_rate=.005,
+            track_learning=True,
+            W_targ=None
     ):
         """
         Initialize a W matrix to project z's back to x's.
@@ -23,15 +24,17 @@ class W_T(object):
         self.axis = axis
         self.a = learn_rate
         self.track_learning = track_learning
-        self.z_delta_hist = []
-        self.z_err_hist = []
+        self.W_targ = W_targ
+        self._delta_hist = []
+        self._err_hist = []
 
-        self._W = generate_random_matrix(
+        self._W = generate_random_norm_matrix(
             dimensions[0],
             dimensions[1],
             norm=norm,
             axis=axis
         )
+        self._W_P = self.W
 
 
     @property
@@ -42,8 +45,22 @@ class W_T(object):
         self._W = value
 
 
+    def err(self):
+        return self._W - self.W_targ
 
-    def ridge_update_W(self, images, targ=None):
+    def delta(self):
+        return self._W - self._W_P
+
+    def delta_mag(self):
+        W_delta = self.delta()
+        return sqrt(np.multiply(W_delta, W_delta).sum())
+
+    def err_mag(self):
+        W_err = self.err()
+        return sqrt(np.multiply(W_err, W_err).sum())
+
+
+    def update(self, images):
         """
         X.shape = (n , d)
         Y.shape = (n , r)
@@ -52,24 +69,32 @@ class W_T(object):
         W.shape = (k , d)
         """
         for i in images:
+            self._W_P = self._W
+
             self.W = (
-                self.W - self.a * (i.z.transpose() * (i.z * self.W - i.x))
+                self.W - self.a * (
+                    i.z.transpose() * (i.z * self.W - i.x)
+                )
             )
-        if self.track_learning:
-            self._delta_hist.append(self.z_delta_mag())
-            if not targ is None:
-                self._err_hist.append(self.get_err_mag(targ))
+
+            if self.track_learning:
+                self._delta_hist.append(self.delta_mag())
+                if not self.W_targ is None:
+                    self._err_hist.append(
+                        self.err_mag()
+                    )
 
 
-    def compute_error(self, W_targ):
+    def compute_error(self):
         """
         compute_error computes the error between the ideal W_targ and
         the current W value.
         The error function used is:
             sqrt(sum( (w(i,j) - w_targ(i,j))^2, for all i's and j's))
         """
-        W_err = self.W - W_targ
-        return sqrt(np.multiply(W_err, W_err).sum())
+        if not self.W_targ is None:
+            W_err = self.W - self.W_targ
+            return sqrt(np.multiply(W_err, W_err).sum())
 
 
 
@@ -77,8 +102,8 @@ class W_T(object):
     Visualizations
     """
 
-    def plot_z_deltas(self):
+    def plot_deltas(self):
         plot_list(self._delta_hist)
 
-    def plot_z_errs(self):
+    def plot_errs(self):
         plot_list(self._err_hist)

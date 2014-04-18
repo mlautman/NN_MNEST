@@ -1,47 +1,25 @@
 from __future__ import division
 import numpy as np
-from numpy import sign
 from math import sqrt
 from src.show_images import show_image_np
 from src.show_images import plot_list
 
 
-def _initial_z_t(z_shape):
-    return np.matrix([0]*z_shape)
-
-
-def _initial_mew():
-    return 1
-
-
-def gamma(mew):
-    return (mew[1]-1)/mew[0]
-
-
-def _S_lambda(u, sparsity):
-    print u.shape
-    print u
-    u = u[0, :]/max(u.max(), abs(u.min()))
-    print u.shape
-    for i, v in enumerate(u.tolist()[0]):
-        if (v > 0) and (v > sparsity):
-            u[0, i] = (v - sparsity * v)
-        elif (v < 0) and (v < -sparsity):
-            u[0, i] = (v - sparsity * v)
-        else:
-            u[0, i] = 0
-    return u
-
-
-def _hangman(u, y, M, sparsity):
-    return _S_lambda(
-        u + (y - u * M) * np.linalg.pinv(M),#.transpose(),
-        sparsity
-        )
+def _initial_z_t(z_len):
+    return np.matrix([0] * z_len)
 
 
 class Image_t(object):
-    def __init__(self, label, x, W, S, sparse=.1, z_targ=None):
+    def __init__(
+        self,
+        label,
+        x,
+        W,
+        S,
+        sparse=.1,
+        track_learning=True,
+        z_targ=None
+    ):
         self.label = label
         self._x = x
         self._y = x * S
@@ -49,10 +27,15 @@ class Image_t(object):
         self._z_p = _initial_z_t(W.shape[0])
         self._z_pp = _initial_z_t(W.shape[0])
         self.sparse = sparse
-        self._z_target = z_targ
-        self.mew = [_initial_mew(), _initial_mew()]
-        self.z_delta_hist = []
+        self.track_learning = track_learning
+        self.z_targ = z_targ
+        self._delta_hist = []
+        self._err_hist = []
 
+
+    """
+    setters and getters
+    """
     @property
     def x(self):
         """
@@ -60,23 +43,29 @@ class Image_t(object):
         x is a np.array representation of the image
         """
         return self._x
-
     @x.setter
     def x(self, value):
         self._x = value
 
+
     @property
     def y(self):
-        return self._y
+        """
+        y = x * S
 
+        y is an intermediate between x and z.
+        y is a random projection of x into a higher dimension
+        """
+        return self._y
     @y.setter
     def y(self, value):
         self._y = value
 
+
     @property
     def z(self):
         """
-        x = W * z
+        x = z * W
 
         Returns: the internal value stored as z
 
@@ -86,56 +75,65 @@ class Image_t(object):
 
         """
         return self._z
-
     @z.setter
     def z(self, value):
         self._z = value
 
-    @property
-    def z_targ(self):
-        """
-        """
-        return self._z_targ
 
-    @z_targ.setter
-    def z_targ(self, value):
-        self._z_targ = value
-
-    def _update_mew(self):
-        self.mew[1] = self.mew[0]
-        self.mew[0] = (1 + sqrt(1+4*self.mew[1]**2))/2
-
-    def update(self, M):
-        self._update_mew()
-        self._z_pp = self._z_p
-        self._z_p = self._z
-        self._z = _hangman(
-            self._z_p + gamma(self.mew) * (self._z_p - self._z_pp),
-            self.y,
-            M,
-            self.sparse
-            )
-        self.z_delta_hist.append(self.z_delta_mag())
-
-    def z_delta(self):
-        return self._z - self._z_p
-
-    def z_delta_mag(self):
-        z_d = self.z_delta()
-        return np.multiply(z_d, z_d).sum()
+    """
+    Meat
+    """
 
     def x_est(self, W):
         return self._z * W
 
+
     def show_x_est(self, W):
         show_image_np(self.x_est(W))
 
-    def get_z_err(self):
-        return self._z
+    def err(self):
+        return self.z_targ - self._z
 
-    def get_z_err_mag(self):
-        z_err = self.z_targ - self._z
+    def delta(self):
+        return self._z - self._z_p
+
+
+    def delta_mag(self):
+        z_d = self.delta()
+        return sqrt(np.multiply(z_d, z_d).sum())
+
+
+    def err_mag(self):
+        z_err = self.err()
         return sqrt(np.multiply(z_err, z_err).sum())
 
-    def plot_z_deltas(self):
-        plot_list(self.z_delta_hist)
+
+    def update(self, z_updater, M):
+        """
+        updates z
+        """
+        self._z_pp = self._z_p
+        self._z_p = self._z
+        self._z = z_updater.update_z(self, M)
+
+        """
+        for tracking learning over time
+        """
+        if self.track_learning:
+            self._delta_hist.append(self.delta_mag())
+            if not self.z_targ is None:
+                self._err_hist.append(
+                    self.err_mag()
+                )
+
+
+    """
+    Visualizations
+    """
+
+    def plot_deltas(self):
+        plot_list(self._delta_hist)
+
+    def plot_errs(self):
+        if not self.z_targ is None:
+            plot_list(self._err_hist)
