@@ -1,4 +1,4 @@
-function V = Gama(U,lambda,X,W) 
+function V = Gama(U,lambda,X,W)
 
 k = length(U);
 V = U + W'*(X - W*U);

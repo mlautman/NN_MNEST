@@ -1,6 +1,7 @@
 import numpy as np
 from math import sqrt
-from random_matrix import generate_random_norm_matrix
+from random_matrix import generate_random_matrix
+from random_matrix import normalize_matrix
 from src.show_images import plot_list
 
 
@@ -9,9 +10,9 @@ class W_T(object):
     def __init__(
             self,
             dimensions,
-            norm='l1',
-            axis=1,
-            learn_rate=.005,
+            norm='l2',
+            axis=0,
+            learn_rate=.01,
             track_learning=True,
             W_targ=None
     ):
@@ -28,9 +29,8 @@ class W_T(object):
         self._delta_hist = []
         self._err_hist = []
 
-        self._W = generate_random_norm_matrix(
-            dimensions[0],
-            dimensions[1],
+        self._W = normalize_matrix(
+            generate_random_matrix(dimensions),
             norm=norm,
             axis=axis
         )
@@ -71,11 +71,12 @@ class W_T(object):
         for i in images:
             self._W_P = self._W
 
-            self.W = (
+            self.W = normalize_matrix(
                 self.W - self.a * (
                     i.z.transpose() * (i.z * self.W - i.x)
                 )
             )
+
 
             if self.track_learning:
                 self._delta_hist.append(self.delta_mag())

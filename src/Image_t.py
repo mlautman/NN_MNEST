@@ -6,7 +6,7 @@ from src.show_images import plot_list
 
 
 def _initial_z_t(z_len):
-    return np.matrix([0] * z_len)
+    return np.matrix([1] * z_len)
 
 
 class Image_t(object):
@@ -16,7 +16,7 @@ class Image_t(object):
         x,
         W,
         S,
-        sparse=.1,
+        sparse=.01,
         track_learning=True,
         z_targ=None
     ):
@@ -100,12 +100,12 @@ class Image_t(object):
 
     def delta_mag(self):
         z_d = self.delta()
-        return sqrt(np.multiply(z_d, z_d).sum())
+        return sqrt(np.multiply(z_d, z_d).sum() / z_d.size)
 
 
     def err_mag(self):
         z_err = self.err()
-        return sqrt(np.multiply(z_err, z_err).sum())
+        return sqrt(np.multiply(z_err, z_err).sum() / z_err.size)
 
 
     def update(self, z_updater, M):
@@ -115,7 +115,6 @@ class Image_t(object):
         self._z_pp = self._z_p
         self._z_p = self._z
         self._z = z_updater.update_z(self, M)
-
         """
         for tracking learning over time
         """
