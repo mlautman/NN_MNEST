@@ -45,19 +45,23 @@ def prep_data(file, prep_data_fn=None, header=[0]):
             return x
 
     images = []
+    labels = []
     with open(file, 'rb') as f:
         reader = csv.reader(f)
         reader.next()
         for i, row in enumerate(reader):
-            images += [(row[0], prep_data_fn(row[1:]))]
-    return images
+            if i > 100:
+                return labels, images
+            images += [prep_data_fn(row[1:])]
+            labels += [row[0]]
+    return labels, images
 
 
 def generate_images_t(labels, X, W, S, z_len, max_from_each=(sys.maxint - 1)):
     # W_inv = np.linalg.pinv(W)
     all_images = [None] * len(X)
     for i, x in enumerate(X):
-        all_images[i] = [Image_t(labels[i], x, W, S)]
+        all_images[i] = Image_t(labels[i], x, W, S)
     return all_images
 
 
@@ -205,15 +209,17 @@ def cycle_learn(images, W, S, z_up, inc=5):
 
 
 def main(fname='./mnest_train.csv'):
+    t0 = time.time()
     x_len = columns(fname) - 1
     y_len = int(x_len * 10)
     z_len = int(3 * x_len)
     W = W_T((z_len, x_len))
     S = generate_random_matrix((x_len, y_len)) / sqrt(x_len * y_len)
-
+    print time.time() - t0
     labels, X = prep_data(fname, prep_data_fn=slist_2_npmatrix)
+    print time.time()-t0
     images = generate_images_t(labels, X, W.W, S, z_len, max_from_each=100)
-
+    print time.time() - t0
     z_up = z_updater()
 
     return images, z_up, W, S

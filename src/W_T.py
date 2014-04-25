@@ -12,7 +12,7 @@ class W_T(object):
             dimensions,
             norm='l2',
             axis=0,
-            learn_rate=.01,
+            learn_rate=.001,
             track_learning=True,
             W_targ=None
     ):
